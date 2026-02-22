@@ -90,6 +90,13 @@ def init_db():
     conn.close()
 
 
+# 🔥 IMPORTANT: Initialize DB on startup (works for Gunicorn/Render)
+try:
+    init_db()
+except Exception:
+    pass
+
+
 # ---------------- HOME ----------------
 @app.route("/")
 def home():
@@ -271,7 +278,6 @@ def project_detail(project_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # OWNER FUNDING
     if request.method == "POST" and "fund_amount" in request.form:
         stage_name = request.form.get("stage_name")
         amount = float(request.form.get("fund_amount") or 0)
@@ -283,7 +289,6 @@ def project_detail(project_id):
             """, (project_id, stage_name, amount, name))
             conn.commit()
 
-    # CONTRACTOR EXPENSE
     if request.method == "POST" and "expense_amount" in request.form:
         expense_type = request.form.get("expense_type")
         amount = float(request.form.get("expense_amount") or 0)
@@ -295,7 +300,6 @@ def project_detail(project_id):
             """, (project_id, expense_type, amount, name))
             conn.commit()
 
-    # FUND REQUEST
     if request.method == "POST" and "request_amount" in request.form:
         amount = float(request.form.get("request_amount") or 0)
 
@@ -306,7 +310,6 @@ def project_detail(project_id):
             """, (project_id, amount, name, role))
             conn.commit()
 
-    # UPDATE PROJECT PROGRESS
     if request.method == "POST" and "update_progress" in request.form:
         if role == "Contractor":
             new_progress = float(request.form.get("update_progress") or 0)
@@ -318,22 +321,17 @@ def project_detail(project_id):
                     WHERE id=%s
                 """, (new_progress, project_id))
                 conn.commit()
-
                 return redirect(url_for("project_detail", project_id=project_id))
 
-    # FETCH PROJECT
     cursor.execute("SELECT * FROM projects WHERE id=%s", (project_id,))
     project = cursor.fetchone()
 
-    # TOTAL FUNDS
     cursor.execute("SELECT SUM(amount) as total FROM owner_funding WHERE project_id=%s", (project_id,))
     total_funds = cursor.fetchone()["total"] or 0
 
-    # TOTAL EXPENSES
     cursor.execute("SELECT SUM(amount) as total FROM contractor_expenses WHERE project_id=%s", (project_id,))
     total_expenses = cursor.fetchone()["total"] or 0
 
-    # EXPENSE BREAKDOWN
     cursor.execute("""
         SELECT expense_type, SUM(amount) as total
         FROM contractor_expenses
@@ -346,11 +344,9 @@ def project_detail(project_id):
     for row in breakdown_rows:
         expense_breakdown[row["expense_type"]] = row["total"]
 
-    # PENDING PAYMENTS
     cursor.execute("SELECT * FROM payments WHERE project_id=%s AND status='Pending'", (project_id,))
     pending_payments = cursor.fetchall()
 
-    # FUNDING HISTORY
     cursor.execute("""
         SELECT stage_name, amount, released_by
         FROM owner_funding
@@ -359,7 +355,6 @@ def project_detail(project_id):
     """, (project_id,))
     funding_history = cursor.fetchall()
 
-    # TEAM MEMBERS
     cursor.execute("""
         SELECT u.name, pm.project_role
         FROM project_members pm
@@ -415,5 +410,4 @@ def project_detail(project_id):
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000)
