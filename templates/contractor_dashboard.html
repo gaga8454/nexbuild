@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>NEXBUILD | Contractor Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background: radial-gradient(circle at top left,#1e293b,#0f172a 70%);
+    color:white;
+    padding:40px;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+/* Glow */
+body::before{
+    content:"";
+    position:fixed;
+    width:600px;
+    height:600px;
+    background:radial-gradient(circle,rgba(59,130,246,0.4),transparent 70%);
+    top:-200px;
+    left:-200px;
+    filter:blur(120px);
+    animation:floatGlow 8s infinite alternate ease-in-out;
+    z-index:-1;
+}
+
+@keyframes floatGlow{
+    from{transform:translate(0,0);}
+    to{transform:translate(150px,100px);}
+}
+
+/* Navbar */
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:40px;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:700;
+}
+
+.logout-btn{
+    padding:10px 22px;
+    border-radius:30px;
+    text-decoration:none;
+    font-weight:600;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    transition:0.3s;
+}
+
+.logout-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 20px rgba(59,130,246,0.6);
+}
+
+/* Cards */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:25px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(20px);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+    transition:0.4s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    border:1px solid rgba(59,130,246,0.6);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+}
+
+.card h3{
+    font-size:14px;
+    color:#cbd5e1;
+}
+
+.card p{
+    font-size:22px;
+    font-weight:700;
+    margin-top:10px;
+}
+
+.positive{color:#4ade80;}
+.negative{color:#f87171;}
+
+/* Team */
+.team-section{
+    margin-top:40px;
+}
+
+.team-list{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.team-member{
+    padding:8px 15px;
+    border-radius:30px;
+    background:rgba(59,130,246,0.2);
+    border:1px solid rgba(59,130,246,0.4);
+    font-size:13px;
+}
+
+/* Form */
+.form-box{
+    margin-top:30px;
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.form-box h2{
+    margin-bottom:15px;
+}
+
+input,select{
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin-right:10px;
+}
+
+button{
+    padding:10px 20px;
+    border-radius:30px;
+    border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 20px rgba(59,130,246,0.6);
+}
+
+/* Pending */
+.pending-box{
+    margin-top:30px;
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+/* Charts */
+.charts-container{
+    display:flex;
+    gap:30px;
+    margin-top:40px;
+}
+
+.chart-card{
+    flex:1;
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+    text-align:center;
+}
+
+/* Timeline */
+.timeline-section{
+    margin-top:60px;
+}
+
+.timeline{
+    position:relative;
+    margin-left:20px;
+}
+
+.timeline::before{
+    content:"";
+    position:absolute;
+    left:8px;
+    top:0;
+    width:3px;
+    height:100%;
+    background:linear-gradient(#3b82f6,#1e293b);
+}
+
+.timeline-item{
+    position:relative;
+    margin-bottom:30px;
+    padding-left:40px;
+}
+
+.timeline-dot{
+    position:absolute;
+    left:0;
+    top:5px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#3b82f6;
+    box-shadow:0 0 10px #3b82f6;
+}
+
+.timeline-content{
+    background:rgba(255,255,255,0.06);
+    padding:15px 20px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+/* Completion */
+.completion{
+    margin-top:30px;
+    padding:20px;
+    border-radius:12px;
+}
+
+.complete{
+    background:rgba(74,222,128,0.2);
+}
+
+.in-progress{
+    background:rgba(251,191,36,0.2);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">NEXBUILD</div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+</div>
+
+<h1 style="margin-bottom:30px;">{{ project["project_name"] }}</h1>
+
+<!-- FINANCIAL CARDS -->
+<div class="grid">
+    <div class="card">
+        <h3>Total Owner Funding</h3>
+        <p>₹{{ total_funds }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Total Expenses</h3>
+        <p>₹{{ total_expenses }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Working Capital</h3>
+        <p class="{{ 'positive' if balance >= 0 else 'negative' }}">
+            ₹{{ balance }}
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>Profit %</h3>
+        <p class="{{ 'positive' if profit >= 0 else 'negative' }}">
+            {{ "%.2f"|format(profit_percentage) }}%
+        </p>
+    </div>
+</div>
+
+<!-- TEAM MEMBERS -->
+<div class="team-section">
+    <h2>Project Team</h2>
+    <div class="team-list">
+        {% for member in team_members %}
+            <div class="team-member">
+                {{ member["name"] }} — {{ member["project_role"] }}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ADD EXPENSE -->
+<div class="form-box">
+    <h2>Add Expense</h2>
+    <form method="POST">
+        <select name="expense_type" required>
+            <option value="Material">Material</option>
+            <option value="Labour">Labour</option>
+            <option value="Salary">Salary</option>
+            <option value="Misc">Misc</option>
+        </select>
+        <input type="number" name="expense_amount" placeholder="Enter Amount" required>
+        <button type="submit">Add Expense</button>
+    </form>
+</div>
+<!-- UPDATE PROGRESS -->
+<div class="form-box">
+    <h2>Update Project Progress</h2>
+    <form method="POST">
+        <input type="number"
+               name="update_progress"
+               placeholder="Enter Progress (%)"
+               min="0"
+               max="100"
+               step="0.01"
+               required>
+        <button type="submit">Update Progress</button>
+    </form>
+</div>
+
+<!-- REQUEST FUND -->
+<div class="form-box">
+    <h2>Request Additional Funding</h2>
+    <form method="POST">
+        <input type="number" name="request_amount" placeholder="Enter Amount" required>
+        <button type="submit">Request Fund</button>
+    </form>
+</div>
+
+<!-- PENDING -->
+<div class="pending-box">
+    <h2>Pending Requests</h2>
+    {% if pending_payments %}
+        {% for p in pending_payments %}
+            <div>₹{{ p["amount"] }} — Status: {{ p["status"] }}</div>
+        {% endfor %}
+    {% else %}
+        <p>No pending requests</p>
+    {% endif %}
+</div>
+
+<!-- CHARTS -->
+<div class="charts-container">
+    <div class="chart-card">
+        <h3>Expense Distribution</h3>
+        <canvas id="expenseChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>Capital Overview</h3>
+        <canvas id="capitalChart"></canvas>
+    </div>
+</div>
+
+<!-- FUNDING TIMELINE -->
+<div class="timeline-section">
+    <h2>Funding History</h2>
+
+    {% if funding_history %}
+        <div class="timeline">
+            {% for f in funding_history %}
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <strong>{{ f["stage_name"] }}</strong><br>
+                        ₹{{ f["amount"] }} released by {{ f["released_by"] }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No funding released yet.</p>
+    {% endif %}
+</div>
+
+{% if project["progress_percent"] == 100 %}
+<div class="completion complete">
+    ✅ Project Completed <br>
+    💰 Final Profit: ₹{{ profit }}
+</div>
+{% else %}
+<div class="completion in-progress">
+    🚧 Project In Progress ({{ project["progress_percent"] }}%)
+</div>
+{% endif %}
+
+<script>
+new Chart(document.getElementById("expenseChart"),{
+    type:"doughnut",
+    data:{
+        labels:["Material","Labour","Salary","Misc"],
+        datasets:[{
+            data:[
+                {{ expense_breakdown.get("Material",0) }},
+                {{ expense_breakdown.get("Labour",0) }},
+                {{ expense_breakdown.get("Salary",0) }},
+                {{ expense_breakdown.get("Misc",0) }}
+            ],
+            backgroundColor:["#3b82f6","#4ade80","#fbbf24","#94a3b8"]
+        }]
+    }
+});
+
+new Chart(document.getElementById("capitalChart"),{
+    type:"bar",
+    data:{
+        labels:["Funding","Expenses","Remaining"],
+        datasets:[{
+            data:[
+                {{ total_funds }},
+                {{ total_expenses }},
+                {{ balance }}
+            ],
+            backgroundColor:["#3b82f6","#f87171","#4ade80"]
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

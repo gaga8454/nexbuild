@@ -1,0 +1,141 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Background */
+.auth-body {
+    min-height: 100vh;
+    position: relative;
+
+    background-image: url("background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dark overlay */
+.auth-body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 0;
+}
+
+/* Wrapper */
+.auth-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass Card */
+.auth-card {
+    width: 360px;
+    padding: 30px;
+    border-radius: 18px;
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    transition: box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* Branding */
+.brand {
+    color: #ffffff;
+    font-size: 28px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.tagline {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    margin-bottom: 22px;
+}
+
+/* Form */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Input Group */
+.input-group {
+    margin-bottom: 14px;
+}
+
+/* Inputs */
+.input-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    outline: none;
+
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+
+    color: #ffffff;
+    font-size: 14px;
+}
+
+/* Placeholder */
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* Button */
+.primary-btn {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: transform 0.2s ease;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Footer */
+.auth-footer {
+    margin-top: 18px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.link-btn {
+    background: none;
+    border: none;
+    color: #f6d365;
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}

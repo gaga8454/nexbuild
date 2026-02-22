@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NEXBUILD | Login</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body.auth-body {
+            min-height: 100vh;
+            position: relative;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body.auth-body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 0;
+        }
+
+        .auth-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card {
+            width: 380px;
+            padding: 32px;
+            border-radius: 16px;
+            background: rgba(70, 80, 85, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .brand {
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            color: #d0d0d0;
+            font-size: 13px;
+            margin: 6px 0 24px;
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 11px 12px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: #8a9599;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .auth-form input::placeholder {
+            color: #ececec;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            background: linear-gradient(to right, #f7d794, #f3a683);
+            margin-top: 10px;
+        }
+
+        .primary-btn:hover {
+            opacity: 0.9;
+        }
+
+        .error-message {
+            color: #ffb3b3;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .auth-footer {
+            margin-top: 18px;
+            font-size: 13px;
+            color: #ddd;
+        }
+
+        .link-btn {
+            color: #f7d794;
+            font-weight: 600;
+            text-decoration: none;
+            margin-left: 4px;
+        }
+
+        .link-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body class="auth-body">
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+
+            <h1 class="brand">NEXBUILD</h1>
+            <p class="tagline">Luxury Construction Intelligence Platform</p>
+
+            <!-- Error Message Display -->
+            {% if error %}
+                <div class="error-message">{{ error }}</div>
+            {% endif %}
+
+            <form class="auth-form" method="POST">
+
+                <div class="input-group">
+                    <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="primary-btn">Login</button>
+
+            </form>
+
+            <div class="auth-footer">
+                <span>Don't have an account?</span>
+                <a href="{{ url_for('register') }}" class="link-btn">Register</a>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

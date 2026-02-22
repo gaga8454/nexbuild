@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NEXBUILD | Operational Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+/* ALL YOUR CSS IS EXACTLY SAME — NOT CHANGED */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background: radial-gradient(circle at top left,#1e293b,#0f172a 70%);
+    color:white;
+    padding:40px;
+    min-height:100vh;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    width:500px;
+    height:500px;
+    background:radial-gradient(circle,rgba(59,130,246,0.5),transparent 70%);
+    top:-150px;
+    left:-150px;
+    filter:blur(120px);
+    animation:glowMove 8s infinite alternate ease-in-out;
+    z-index:-1;
+}
+
+@keyframes glowMove{
+    from{transform:translate(0,0);}
+    to{transform:translate(120px,80px);}
+}
+
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:40px;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:700;
+}
+
+.logout-btn{
+    padding:10px 22px;
+    border-radius:30px;
+    text-decoration:none;
+    font-weight:600;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    transition:0.3s;
+}
+
+.logout-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 20px rgba(59,130,246,0.6);
+}
+
+.project-title{
+    margin-bottom:10px;
+    font-size:28px;
+    font-weight:700;
+}
+
+.role-tag{
+    color:#cbd5e1;
+    margin-bottom:30px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(20px);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+    transition:0.4s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    border:1px solid rgba(59,130,246,0.6);
+}
+
+.card h3{
+    font-size:14px;
+    color:#cbd5e1;
+}
+
+.card p{
+    font-size:22px;
+    font-weight:700;
+    margin-top:10px;
+}
+
+.charts{
+    display:flex;
+    gap:30px;
+    margin-top:40px;
+}
+
+.chart-box{
+    flex:1;
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.update-box{
+    margin-top:40px;
+    background:rgba(255,255,255,0.06);
+    padding:25px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+textarea,input{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    background:rgba(255,255,255,0.1);
+    color:white;
+    margin-bottom:15px;
+}
+
+button{
+    padding:12px 24px;
+    border-radius:30px;
+    border:none;
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    color:white;
+    font-weight:600;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">NEXBUILD</div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+</div>
+
+<div class="project-title">{{ project["project_name"] }}</div>
+<div class="role-tag">Operational View</div>
+
+<div class="cards">
+    <div class="card">
+        <h3>Total Budget</h3>
+        <p>₹{{ project["total_budget"] }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Project Progress</h3>
+        <p>{{ project["progress_percent"] }}%</p>
+    </div>
+
+    <div class="card">
+        <h3>Status</h3>
+        <p>
+            {% if project["progress_percent"] >= 100 %}
+                Completed
+            {% else %}
+                In Progress
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="charts">
+    <div class="chart-box">
+        <canvas id="budgetChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+        <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
+<div class="update-box">
+    <h2 style="margin-bottom:20px;">Operational Update</h2>
+
+    <form method="POST">
+        <textarea name="update_text" placeholder="Enter update details..." required></textarea>
+        <input type="number" name="labour_count" placeholder="Labour Count (if applicable)">
+        <input type="number" name="labour_payment" placeholder="Labour Payment Amount (if applicable)">
+        <button type="submit">Submit Update</button>
+    </form>
+</div>
+
+<script>
+new Chart(document.getElementById('budgetChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Budget'],
+        datasets: [{
+            label: 'Total Budget',
+            data: [{{ project["total_budget"] }}],
+            backgroundColor: ['#3b82f6']
+        }]
+    }
+});
+
+new Chart(document.getElementById('progressChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Completed', 'Remaining'],
+        datasets: [{
+            data: [
+                {{ project["progress_percent"] }},
+                {{ 100 - project["progress_percent"] }}
+            ],
+            backgroundColor: ['#3b82f6', '#1e293b']
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

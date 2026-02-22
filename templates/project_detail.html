@@ -1,0 +1,182 @@
+@app.route("/project/<int:project_id>", methods=["GET", "POST"])
+def project_detail(project_id):
+
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    name = session["name"]
+    role = session["role"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # ==========================================================
+    # ======================= POST LOGIC =======================
+    # ==========================================================
+
+    # ---------- OWNER FUNDING ----------
+    if request.method == "POST" and "fund_amount" in request.form:
+        stage_name = request.form.get("stage_name")
+        amount = float(request.form.get("fund_amount") or 0)
+
+        if amount > 0:
+            cursor.execute("""
+                INSERT INTO owner_funding (project_id, stage_name, amount, released_by)
+                VALUES (?, ?, ?, ?)
+            """, (project_id, stage_name, amount, name))
+            conn.commit()
+
+    # ---------- CONTRACTOR EXPENSE ----------
+    if request.method == "POST" and "expense_amount" in request.form:
+        expense_type = request.form.get("expense_type")
+        amount = float(request.form.get("expense_amount") or 0)
+
+        if amount > 0:
+            cursor.execute("""
+                INSERT INTO contractor_expenses (project_id, expense_type, amount, added_by)
+                VALUES (?, ?, ?, ?)
+            """, (project_id, expense_type, amount, name))
+            conn.commit()
+
+    # ---------- OPERATIONAL REQUEST ----------
+    if request.method == "POST" and "request_amount" in request.form:
+        amount = float(request.form.get("request_amount") or 0)
+
+        if amount > 0:
+            cursor.execute("""
+                INSERT INTO payments (project_id, amount, requested_by, role, status)
+                VALUES (?, ?, ?, ?, 'Pending')
+            """, (project_id, amount, name, role))
+            conn.commit()
+
+    # ---------- UPDATE PROJECT PROGRESS (ONLY CONTRACTOR) ----------
+    if request.method == "POST" and "update_progress" in request.form:
+        if role == "Contractor":
+
+            new_progress = float(request.form.get("update_progress") or 0)
+
+            if 0 <= new_progress <= 100:
+                cursor.execute("""
+                    UPDATE projects
+                    SET progress_percent=?
+                    WHERE id=?
+                """, (new_progress, project_id))
+                conn.commit()
+
+                # 🔥 Important: Refresh page after update
+                return redirect(url_for("project_detail", project_id=project_id))
+
+    # ==========================================================
+    # ======================= FETCH DATA ========================
+    # ==========================================================
+
+    # ---------- FETCH PROJECT ----------
+    cursor.execute("SELECT * FROM projects WHERE id=?", (project_id,))
+    project = cursor.fetchone()
+
+    # ---------- FUNDING TOTAL ----------
+    cursor.execute("""
+        SELECT SUM(amount) as total
+        FROM owner_funding
+        WHERE project_id=?
+    """, (project_id,))
+    total_funds = cursor.fetchone()["total"] or 0
+
+    # ---------- EXPENSE TOTAL ----------
+    cursor.execute("""
+        SELECT SUM(amount) as total
+        FROM contractor_expenses
+        WHERE project_id=?
+    """, (project_id,))
+    total_expenses = cursor.fetchone()["total"] or 0
+
+    # ---------- EXPENSE BREAKDOWN ----------
+    cursor.execute("""
+        SELECT expense_type, SUM(amount) as total
+        FROM contractor_expenses
+        WHERE project_id=?
+        GROUP BY expense_type
+    """, (project_id,))
+    breakdown_rows = cursor.fetchall()
+
+    expense_breakdown = {
+        "Material": 0,
+        "Labour": 0,
+        "Salary": 0,
+        "Misc": 0
+    }
+
+    for row in breakdown_rows:
+        expense_breakdown[row["expense_type"]] = row["total"]
+
+    # ---------- FUNDING HISTORY ----------
+    cursor.execute("""
+        SELECT stage_name, amount, released_by, id
+        FROM owner_funding
+        WHERE project_id=?
+        ORDER BY id DESC
+    """, (project_id,))
+    funding_history = cursor.fetchall()
+
+    # ---------- PENDING PAYMENTS ----------
+    cursor.execute("""
+        SELECT * FROM payments
+        WHERE project_id=? AND status='Pending'
+    """, (project_id,))
+    pending_payments = cursor.fetchall()
+
+    conn.close()
+
+    # ==========================================================
+    # ======================= ANALYTICS =========================
+    # ==========================================================
+
+    balance = total_funds - total_expenses
+    profit = balance
+
+    if total_funds > 0:
+        profit_percentage = (profit / total_funds) * 100
+        expense_utilization = (total_expenses / total_funds) * 100
+    else:
+        profit_percentage = 0
+        expense_utilization = 0
+
+    # ==========================================================
+    # ======================= ROLE ROUTING ======================
+    # ==========================================================
+
+    if role == "Business Owner / Founder / CXO":
+        return render_template(
+            "owner_dashboard.html",
+            project=project,
+            total_funds=total_funds,
+            total_expenses=total_expenses,
+            balance=balance,
+            profit=profit,
+            profit_percentage=profit_percentage,
+            expense_utilization=expense_utilization,
+            expense_breakdown=expense_breakdown,
+            pending_payments=pending_payments,
+            funding_history=funding_history
+        )
+
+    elif role == "Contractor":
+        return render_template(
+            "contractor_dashboard.html",
+            project=project,
+            total_funds=total_funds,
+            total_expenses=total_expenses,
+            balance=balance,
+            profit=profit,
+            profit_percentage=profit_percentage,
+            expense_utilization=expense_utilization,
+            expense_breakdown=expense_breakdown,
+            pending_payments=pending_payments,
+            funding_history=funding_history
+        )
+
+    else:
+        return render_template(
+            "operational_dashboard.html",
+            project=project
+        )
